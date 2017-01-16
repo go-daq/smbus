@@ -201,6 +201,10 @@ func (c *Conn) addr(addr uint8) error {
 	return ioctl(c.f.Fd(), i2cSlave, uintptr(addr))
 }
 
+func (c *Conn) SetAddr(addr uint8) error {
+	return c.addr(addr)
+}
+
 func ioctl(fd, cmd, arg uintptr) (err error) {
 	_, _, e1 := syscall.Syscall6(syscall.SYS_IOCTL, fd, cmd, arg, 0, 0, 0)
 	if e1 != 0 {
