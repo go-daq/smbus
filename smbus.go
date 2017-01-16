@@ -8,6 +8,7 @@
 package smbus
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"syscall"
@@ -29,6 +30,10 @@ const (
 	i2cSMBusBlockData    uint32 = 5
 	i2cSMBusI2CBlockData uint32 = 8
 	i2cSMBusBlockMax     uint32 = 32
+)
+
+var (
+	errSMBusBlockDataMax = errors.New("smbus: buffer slice too big")
 )
 
 // Conn is connection to a i2c device.
@@ -135,6 +140,58 @@ func (c *Conn) WriteWord(addr, reg uint8, v uint16) error {
 		cmd: reg,
 		len: i2cSMBusWordData,
 		ptr: unsafe.Pointer(&v),
+	}
+	ptr := unsafe.Pointer(&cmd)
+	return ioctl(c.f.Fd(), i2cSMBus, uintptr(ptr))
+}
+
+// ReadBlockData reads len(buf) data into the byte slice, from the designated register.
+func (c *Conn) ReadBlockData(addr, reg uint8, buf []byte) error {
+	if len(buf) > int(i2cSMBusBlockMax) {
+		return errSMBusBlockDataMax
+	}
+
+	if err := c.addr(addr); err != nil {
+		return err
+	}
+
+	data := make([]byte, len(buf)+1, i2cSMBusBlockMax+2)
+	data[0] = byte(len(buf))
+	cmd := i2cCmd{
+		rw:  i2cSMBusRead,
+		cmd: reg,
+		len: i2cSMBusI2CBlockData,
+		ptr: unsafe.Pointer(&data[0]),
+	}
+	ptr := unsafe.Pointer(&cmd)
+	err := ioctl(c.f.Fd(), i2cSMBus, uintptr(ptr))
+	if err != nil {
+		return err
+	}
+
+	copy(buf[:len(buf)], data[1:len(buf)+1])
+	return nil
+}
+
+// WriteBlockData writes the buf byte slice to a designated register.
+func (c *Conn) WriteBlockData(addr, reg uint8, buf []byte) error {
+	if len(buf) > int(i2cSMBusBlockMax) {
+		return errSMBusBlockDataMax
+	}
+
+	if err := c.addr(addr); err != nil {
+		return err
+	}
+
+	data := make([]byte, 1+len(buf))
+	data[0] = byte(len(buf))
+	copy(data[1:], buf)
+
+	cmd := i2cCmd{
+		rw:  i2cSMBusWrite,
+		cmd: reg,
+		len: i2cSMBusI2CBlockData,
+		ptr: unsafe.Pointer(&data[0]),
 	}
 	ptr := unsafe.Pointer(&cmd)
 	return ioctl(c.f.Fd(), i2cSMBus, uintptr(ptr))
