@@ -7,6 +7,7 @@ package tsl2591
 
 import (
 	"math"
+	"time"
 
 	"github.com/go-daq/smbus"
 )
@@ -68,6 +69,10 @@ func Open(conn *smbus.Conn, addr uint8, integ IntegTimeValue, gain GainValue) (*
 	}
 
 	return &dev, nil
+}
+
+func (dev *Device) Close() error {
+	return dev.conn.Close()
 }
 
 func (dev *Device) enable() error {
@@ -177,6 +182,7 @@ func (dev *Device) Lux(full, ir uint16) float64 {
 
 func (dev *Device) FullLuminosity() (uint16, uint16, error) {
 	err := dev.enable()
+	time.Sleep((120*time.Duration(dev.integ) + 1) * time.Millisecond)
 	if err != nil {
 		return 0, 0, err
 	}
