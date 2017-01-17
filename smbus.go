@@ -183,7 +183,7 @@ func (c *Conn) WriteBlockData(addr, reg uint8, buf []byte) error {
 		return err
 	}
 
-	data := make([]byte, 1+len(buf))
+	data := make([]byte, 1+len(buf), i2cSMBusBlockMax+2)
 	data[0] = byte(len(buf))
 	copy(data[1:], buf)
 
