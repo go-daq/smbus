@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	I2CAddr uint8 = 0x77 // BME280 default address
+	I2CAddr uint8 = 0x76 // BME280 default address
 )
 
 // OpMode describes the operating modes of a BME280 device.
