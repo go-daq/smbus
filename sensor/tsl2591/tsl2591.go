@@ -182,7 +182,10 @@ func (dev *Device) Lux(full, ir uint16) float64 {
 
 func (dev *Device) FullLuminosity() (uint16, uint16, error) {
 	err := dev.enable()
-	time.Sleep((120*time.Duration(dev.integ) + 1) * time.Millisecond)
+	if err != nil {
+		return 0, 0, err
+	}
+	time.Sleep(((120*time.Duration(dev.integ))*time.Millisecond + 1) * time.Second)
 	if err != nil {
 		return 0, 0, err
 	}
