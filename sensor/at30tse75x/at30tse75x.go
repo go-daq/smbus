@@ -12,6 +12,10 @@ import (
 )
 
 const (
+	DefaultI2CAddr uint8 = 0x4c // default I2C address of the AT30TSE75x sensor.
+)
+
+const (
 	temperatureRegSize = 2
 
 	regAddTemp   = 0x48 // Temperature sensor: 0b1001xxx
@@ -54,6 +58,34 @@ const (
 )
 */
 
+// config holds configuration options for an AT30TSE75x device.
+type config struct {
+	I2CAddr uint8
+	DevAddr uint8
+	EEPROM  int // EEPROM size in bytes
+}
+
+// I2CAddr setups the I2C address of the AT30TSE75x device
+func I2CAddr(addr uint8) func(cfg *config) {
+	return func(cfg *config) {
+		cfg.I2CAddr = addr
+	}
+}
+
+// DevAddr setups the device address of the AT30TSE75x device.
+func DevAddr(addr uint8) func(cfg *config) {
+	return func(cfg *config) {
+		cfg.DevAddr = addr
+	}
+}
+
+// EEPROM setups the EEPROM size (in bytes) of the AT30TSE75x device.
+func EEPROM(size int) func(cfg *config) {
+	return func(cfg *config) {
+		cfg.EEPROM = size
+	}
+}
+
 // Device is a handle to an AT30TSE75x device.
 type Device struct {
 	conn  *smbus.Conn
@@ -63,16 +95,25 @@ type Device struct {
 	taddr uint8
 }
 
-// Open opens a connection to an AT30TSE75x device at the given address,
-// specifying the EEPROM size (in bytes).
-func Open(conn *smbus.Conn, addr uint8, esize int) (*Device, error) {
+// Open opens a connection to an AT30TSE75x device with the given configuration.
+func Open(conn *smbus.Conn, opts ...func(cfg *config)) (*Device, error) {
+	cfg := config{
+		I2CAddr: DefaultI2CAddr,
+		DevAddr: 0,
+		EEPROM:  4,
+	}
+
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
 	dev := &Device{
 		conn:  conn,
-		addr:  0x4c,
-		esize: esize,
+		addr:  cfg.I2CAddr,
+		esize: cfg.EEPROM,
 	}
-	dev.taddr = (((addr & 0x7) | regAddTemp) & 0x7f) << 1
-	dev.eaddr = (((addr & 0x7) | regAddEEPROM) & 0x7f) << 1
+	dev.taddr = (((cfg.DevAddr & 0x7) | regAddTemp) & 0x7f) << 1
+	dev.eaddr = (((cfg.DevAddr & 0x7) | regAddEEPROM) & 0x7f) << 1
 
 	err := dev.conn.SetAddr(dev.addr)
 	if err != nil {
