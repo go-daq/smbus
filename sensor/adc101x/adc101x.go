@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package adc101c provides access to a 10-bit Analog-to-Digital converter.
+// Package adc101x provides access to a 10-bit Analog-to-Digital converter.
 //
 // See:
 //  http://www.ti.com/lit/ds/symlink/adc101c021.pdf
-package adc101c
+package adc101x
 
 import (
 	"encoding/binary"
@@ -15,17 +15,17 @@ import (
 )
 
 const (
-	DefaultI2CAddr uint8 = 0x50 // default I2C address of the ADC101C sensor.
+	DefaultI2CAddr uint8 = 0x50 // default I2C address of the ADC101x sensor.
 )
 
-// Device is a handle to an ADC101C device.
+// Device is a handle to an ADC101x device.
 type Device struct {
 	conn *smbus.Conn
 	addr uint8
 	bits uint8
 }
 
-// Open opens a connection to an ADC101C device.
+// Open opens a connection to an ADC101x device.
 func Open(conn *smbus.Conn, addr uint8) (*Device, error) {
 	dev := &Device{
 		conn: conn,
