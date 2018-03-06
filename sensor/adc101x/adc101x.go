@@ -23,14 +23,19 @@ type Device struct {
 	conn *smbus.Conn
 	addr uint8
 	bits uint8
+
+	frange int     // ADC full range
+	vdd    float64 // ADC full range
 }
 
 // Open opens a connection to an ADC101x device.
-func Open(conn *smbus.Conn, addr uint8) (*Device, error) {
+func Open(conn *smbus.Conn, addr uint8, frange int, vdd float64) (*Device, error) {
 	dev := &Device{
-		conn: conn,
-		addr: addr,
-		bits: 10,
+		conn:   conn,
+		addr:   addr,
+		bits:   10,
+		frange: frange,
+		vdd:    vdd,
 	}
 
 	err := dev.conn.SetAddr(dev.addr)
@@ -62,4 +67,13 @@ func (dev *Device) ADC() (int, error) {
 	// convert data to 10-bits
 	adc := int(raw&0xFFF) >> (12 - dev.bits)
 	return adc, nil
+}
+
+func (dev *Device) Voltage() (float64, error) {
+	adc, err := dev.ADC()
+	if err != nil {
+		return 0, err
+	}
+
+	return dev.vdd * float64(adc) / float64(dev.frange), nil
 }
