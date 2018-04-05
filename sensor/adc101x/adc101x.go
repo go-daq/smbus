@@ -10,6 +10,7 @@ package adc101x
 
 import (
 	"encoding/binary"
+	"fmt"
 
 	"github.com/go-daq/smbus"
 )
@@ -40,7 +41,7 @@ func Open(conn *smbus.Conn, addr uint8, frange int, vdd float64) (*Device, error
 
 	err := dev.conn.SetAddr(dev.addr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("adc101x: error in set-addr: %v", err)
 	}
 
 	const (
@@ -49,7 +50,7 @@ func Open(conn *smbus.Conn, addr uint8, frange int, vdd float64) (*Device, error
 	)
 	err = dev.conn.WriteReg(dev.addr, configRegister, autoConvMode)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("adc101x: error in write-reg: %v", err)
 	}
 
 	return dev, nil
@@ -59,7 +60,7 @@ func (dev *Device) ADC() (int, error) {
 	var buf [2]byte
 	err := dev.conn.ReadBlockData(dev.addr, 0x000, buf[:])
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("adc101x: error in read-block-data: %v", err)
 	}
 
 	raw := binary.BigEndian.Uint16(buf[:])
