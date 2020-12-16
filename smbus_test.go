@@ -33,3 +33,26 @@ func TestOpen(t *testing.T) {
 	}
 	t.Logf("v=%v\n", v)
 }
+
+func TestOpenFile(t *testing.T) {
+	usr, err := user.Current()
+	if err != nil {
+		t.Fatalf("os/user: %v\n", err)
+	}
+
+	if usr.Name != "root" {
+		t.Skip("need root access")
+	}
+
+	c, err := smbus.OpenFile(0)
+	if err != nil {
+		t.Fatalf("open file error: %v\n", err)
+	}
+	defer c.Close()
+
+	v, err := c.ReadReg(0x69, 0x1)
+	if err != nil {
+		t.Fatalf("read-reg error: %v\n", err)
+	}
+	t.Logf("v=%v\n", v)
+}
