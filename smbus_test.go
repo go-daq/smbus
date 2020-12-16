@@ -2,11 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package smbus
+package smbus_test
 
 import (
 	"os/user"
 	"testing"
+
+	"github.com/go-daq/smbus"
 )
 
 func TestOpen(t *testing.T) {
@@ -19,7 +21,7 @@ func TestOpen(t *testing.T) {
 		t.Skip("need root access")
 	}
 
-	c, err := Open(0, 0x69)
+	c, err := smbus.Open(0, 0x69)
 	if err != nil {
 		t.Fatalf("open error: %v\n", err)
 	}
