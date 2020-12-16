@@ -42,7 +42,7 @@ func TestOpenFile(t *testing.T) {
 		t.Skip("need root access")
 	}
 
-	c, err := OpenFile(0)
+	c, err := smbus.OpenFile(0)
 	if err != nil {
 		t.Fatalf("open file error: %v\n", err)
 	}
