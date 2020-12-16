@@ -42,8 +42,7 @@ type Conn struct {
 }
 
 // OpenFile opens a connection to the i2c bus number.
-// Note, SetAddr(uint8) should be called afterward.
-// To open the dev file and set the address in one function call, use Open(int, uint8).
+// Users should call SetAddr afterwards to have a properly configured SMBus connection.
 func OpenFile(bus int) (*Conn, error) {
 	f, err := os.OpenFile(fmt.Sprintf("/dev/i2c-%d", bus), os.O_RDWR, 0600)
 	if err != nil {
